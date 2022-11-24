@@ -20,12 +20,31 @@ console.log(uri)
 
 async function run(){
     try{
+        const laptopCollection = client.db('laptopCollection').collection('allCategories')
+        const bookingsCollection = client.db('laptopCollection').collection('bookings')
+        //for all categories
+        app.get('/allCategories/:id',async(req,res)=>{
+            const id=req.params.id;
+            const query={category_Id:id}
+            const result=await laptopCollection.find(query).toArray();
+            res.send(result)
+
+        })
+        //for booking
+        app.post('/bookings',async(req,res)=>{
+            const bookings=req.body;
+            const result = await bookingsCollection.insertOne(bookings)
+            res.send(result)
+
+        })
+        
+    
 
     }
     finally{
-        
+
     }
-}
+}run().catch(console.dir)
 
 
 app.get('/',(req,res)=>{
