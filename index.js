@@ -2,7 +2,9 @@ const express = require('express')
 const cors = require('cors')
 const app = express();
 const port = process.env.PORT || 5000;
+const jwt = require('jsonwebtoken')
 const { MongoClient, ServerApiVersion } = require('mongodb');
+// const { json } = require('express');
 require('dotenv').config();
 
 //middleware
@@ -38,11 +40,30 @@ async function run() {
             res.send(result)
 
         })
+        //for users jwt
+        app.get('/jwt',async(req,res)=>{
+            const email=req.query.email;
+            const query={email:email}
+            const users=await usersCollection.findOne(query)
+            if (users) {
+                const token = jwt.sign({ email }, process.env.ACCESS_TOKEN, { expiresIn: '7d' })
+                return res.send({ accessToken: token })
+            }
+            console.log(users)
+            res.send(403).send({ accessToken: 'Forbidden' })
+        })
         //for users
         app.post('/users', async (req, res) => {
             const users = req.body
             const result = await usersCollection.insertOne(users)
             res.send(result)
+        })
+        //load all product
+        app.get('/bookings',async(req,res)=>{
+            const email=req.query.email;
+            const query={email:email}
+            const bookings=await bookingsCollection.find(query).toArray()
+            res.send(bookings)
         })
 
 
