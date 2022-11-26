@@ -77,7 +77,7 @@ async function run() {
             res.send(result)
         })
         //load all product
-        app.get('/bookings', verifyJWT, async (req, res) => {
+        app.get('/bookings', verifyJWT,async (req, res) => {
             const email = req.query.email;
             const decodedEmail = req.decoded.email;
             if (email !== decodedEmail) {
@@ -128,13 +128,26 @@ async function run() {
 
         })
         //get methods for users
-        app.get('/seller',async(req,res)=>{
+        app.get('/seller',verifyJWT,async(req,res)=>{
            const role=req.query.role;
-           console.log(role)
+            const decodedEmail = req.decoded.email;
+            if (email !== decodedEmail) {
+                res.status(403).send({ message: 'forbidden access' })
+            }
            const query={role: role};
            const result=await usersCollection.find(query).toArray()
            res.send(result)
         })
+        //for seller delete
+        app.delete('/seller/:id',async(req,res)=>{
+            const id=req.params.id;
+            const email = req.query.email;
+            const query={_id:ObjectId(id)}
+            const result=await usersCollection.deleteOne(query)
+            res.send(result)
+
+        })
+       
 
     }
     finally {
