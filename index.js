@@ -127,7 +127,7 @@ async function run() {
             res.send(result)
 
         })
-        //get methods for users
+        //get methods for seller
         app.get('/seller',verifyJWT,async(req,res)=>{
            const role=req.query.role;
             const decodedEmail = req.decoded.email;
@@ -144,6 +144,14 @@ async function run() {
             const email = req.query.email;
             const query={_id:ObjectId(id)}
             const result=await usersCollection.deleteOne(query)
+            res.send(result)
+
+        })
+        //get methods for buyer
+        app.get('/buyer',async(req,res)=>{
+            const role=req.query.role;
+            const query={role:role};
+            const result=await usersCollection.find(query).toArray()
             res.send(result)
 
         })
