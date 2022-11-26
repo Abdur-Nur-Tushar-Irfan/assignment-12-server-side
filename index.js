@@ -18,13 +18,31 @@ app.use(express.json());
 
 const uri = `mongodb+srv://${process.env.DB_USER}:${process.env.DB_PASSWORD}@cluster0.fpvwzmp.mongodb.net/?retryWrites=true&w=majority`;
 const client = new MongoClient(uri, { useNewUrlParser: true, useUnifiedTopology: true, serverApi: ServerApiVersion.v1 });
-console.log(uri)
+
+//for veryfyjwt
+function verifyJWT(req, res, next) {
+    const authHeader = req.headers.authorization
+    console.log('inside verifyjwt', authHeader)
+    if (!authHeader) {
+        return res.status(401).send('unauthorized access')
+    }
+    const token = authHeader.split(' ')[1]
+    jwt.verify(token, process.env.ACCESS_TOKEN, function (err, decoded) {
+        if (err) {
+            return res.status(403).send({ message: 'forbidden access' })
+        }
+        req.decoded = decoded
+        next();
+    })
+
+}
 
 async function run() {
     try {
         const laptopCollection = client.db('laptopCollection').collection('allCategories')
         const bookingsCollection = client.db('laptopCollection').collection('bookings')
         const usersCollection = client.db('laptopCollection').collection('users')
+        const ProductsCollection = client.db('laptopCollection').collection('products')
         //for all categories
         app.get('/allCategories/:id', async (req, res) => {
             const id = req.params.id;
@@ -41,16 +59,16 @@ async function run() {
 
         })
         //for users jwt
-        app.get('/jwt',async(req,res)=>{
-            const email=req.query.email;
-            const query={email:email}
-            const users=await usersCollection.findOne(query)
+        app.get('/jwt', async (req, res) => {
+            const email = req.query.email;
+            const query = { email: email }
+            const users = await usersCollection.findOne(query)
             if (users) {
                 const token = jwt.sign({ email }, process.env.ACCESS_TOKEN, { expiresIn: '7d' })
                 return res.send({ accessToken: token })
             }
             console.log(users)
-            res.send(403).send({ accessToken: 'Forbidden' })
+            res.status(403).send({ accessToken: 'Forbidden' })
         })
         //for users
         app.post('/users', async (req, res) => {
@@ -59,12 +77,45 @@ async function run() {
             res.send(result)
         })
         //load all product
-        app.get('/bookings',async(req,res)=>{
-            const email=req.query.email;
-            const query={email:email}
-            const bookings=await bookingsCollection.find(query).toArray()
+        app.get('/bookings', verifyJWT, async (req, res) => {
+            const email = req.query.email;
+            const decodedEmail = req.decoded.email;
+            if (email !== decodedEmail) {
+                res.status(403).send({ message: 'forbidden access' })
+            }
+            const query = { email: email }
+            const bookings = await bookingsCollection.find(query).toArray()
             res.send(bookings)
         })
+        // get method for users
+        app.get("/users", async (req, res) => {
+            const email = req.query.email;
+            const query = { email: email };
+            const users = await usersCollection.find(query).toArray();
+            res.send(users);
+        });
+
+        app.get("/users/admin/:email", async (req, res) => {
+            const email = req.params.email;
+            const query = { email };
+            const user = await usersCollection.findOne(query);
+            res.send({ isAdmin: user?.role === "admin" });
+        });
+        //for adding products
+        app.post('/products', async (req, res) => {
+            const products = req.body
+            const result = await ProductsCollection.insertOne(products)
+            res.send(result)
+
+        })
+        //for loading products
+        app.get('/products',async(req,res)=>{
+            const query={}
+            const result=await ProductsCollection.find(query).toArray()
+            res.send(result)
+        })
+
+
 
 
 
