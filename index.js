@@ -128,12 +128,8 @@ async function run() {
 
         })
         //get methods for seller
-        app.get('/seller',verifyJWT,async(req,res)=>{
+        app.get('/seller',async(req,res)=>{
            const role=req.query.role;
-            const decodedEmail = req.decoded.email;
-            if (email !== decodedEmail) {
-                res.status(403).send({ message: 'forbidden access' })
-            }
            const query={role: role};
            const result=await usersCollection.find(query).toArray()
            res.send(result)
@@ -141,7 +137,6 @@ async function run() {
         //for seller delete
         app.delete('/seller/:id',async(req,res)=>{
             const id=req.params.id;
-            const email = req.query.email;
             const query={_id:ObjectId(id)}
             const result=await usersCollection.deleteOne(query)
             res.send(result)
@@ -152,6 +147,14 @@ async function run() {
             const role=req.query.role;
             const query={role:role};
             const result=await usersCollection.find(query).toArray()
+            res.send(result)
+
+        })
+        //for buyer delete method
+        app.delete('/seller/:id',async(req,res)=>{
+            const id=req.params.id;
+            const query={_id:ObjectId(id)}
+            const result=await usersCollection.deleteOne(query)
             res.send(result)
 
         })
