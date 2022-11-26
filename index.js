@@ -109,24 +109,32 @@ async function run() {
 
         })
         //for loading products
-        app.get('/products',async(req,res)=>{
-            const query={}
+        app.get('/products',verifyJWT,async(req,res)=>{
+            const email=req.query.email
+            const decodedEmail = req.decoded.email;
+            if (email !== decodedEmail) {
+                res.status(403).send({ message: 'forbidden access' })
+            }
+            const query={email: email}
             const result=await ProductsCollection.find(query).toArray()
             res.send(result)
         })
         app.delete('/products/:id',async(req,res)=>{
             const id=req.params.id;
+            const email = req.query.email;
             const query={_id:ObjectId(id)}
             const result=await ProductsCollection.deleteOne(query)
             res.send(result)
 
         })
-        
-
-
-
-
-
+        //get methods for users
+        app.get('/seller',async(req,res)=>{
+           const role=req.query.role;
+           console.log(role)
+           const query={role: role};
+           const result=await usersCollection.find(query).toArray()
+           res.send(result)
+        })
 
     }
     finally {
