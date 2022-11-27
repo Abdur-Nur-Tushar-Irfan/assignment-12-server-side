@@ -22,7 +22,6 @@ const client = new MongoClient(uri, { useNewUrlParser: true, useUnifiedTopology:
 //for veryfyjwt
 function verifyJWT(req, res, next) {
     const authHeader = req.headers.authorization
-    console.log('inside verifyjwt', authHeader)
     if (!authHeader) {
         return res.status(401).send('unauthorized access')
     }
@@ -175,6 +174,19 @@ async function run() {
         app.post('/reports',async(req,res)=>{
             const report=req.body;
             const result=await reportsCollection.insertOne(report)
+            res.send(result)
+        })
+        //for read report api
+        app.get('/reports',async(req,res)=>{
+            const query={}
+            const result=await reportsCollection.find(query).toArray()
+            res.send(result)
+        })
+        //for report delete
+        app.delete('/reports/:id',async(req,res)=>{
+            const id=req.params.id
+            const query={_id:ObjectId(id)}
+            const result=await reportsCollection.deleteOne(query)
             res.send(result)
         })
         
