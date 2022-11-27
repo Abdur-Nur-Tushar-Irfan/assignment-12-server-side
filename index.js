@@ -36,13 +36,14 @@ function verifyJWT(req, res, next) {
     })
 
 }
-
 async function run() {
     try {
         const laptopCollection = client.db('laptopCollection').collection('allCategories')
         const bookingsCollection = client.db('laptopCollection').collection('bookings')
         const usersCollection = client.db('laptopCollection').collection('users')
         const ProductsCollection = client.db('laptopCollection').collection('products')
+        const adverticesCollection= client.db('laptopCollection').collection('advertices')
+        const reportsCollection= client.db('laptopCollection').collection('reports')
         //for all categories
         app.get('/allCategories/:id', async (req, res) => {
             const id = req.params.id;
@@ -108,14 +109,14 @@ async function run() {
             res.send(result)
 
         })
-        //for loading products
+        //for readings products
         app.get('/products',verifyJWT,async(req,res)=>{
             const email=req.query.email
+            const query={email: email}
             const decodedEmail = req.decoded.email;
             if (email !== decodedEmail) {
                 res.status(403).send({ message: 'forbidden access' })
             }
-            const query={email: email}
             const result=await ProductsCollection.find(query).toArray()
             res.send(result)
         })
@@ -151,13 +152,33 @@ async function run() {
 
         })
         //for buyer delete method
-        app.delete('/seller/:id',async(req,res)=>{
+        app.delete('/buyer/:id',async(req,res)=>{
             const id=req.params.id;
             const query={_id:ObjectId(id)}
             const result=await usersCollection.deleteOne(query)
             res.send(result)
 
         })
+        //for advertices
+        app.post('/advertices',async(req,res)=>{
+            const items=req.body;
+            const result=await adverticesCollection.insertOne(items)
+            res.send(result)
+        })
+        //for read advertices
+        app.get('/advertices',async(req,res)=>{
+            const query={}
+            const result=await adverticesCollection.find(query).toArray()
+            res.send(result)
+        })
+        //for report item
+        app.post('/reports',async(req,res)=>{
+            const report=req.body;
+            const result=await reportsCollection.insertOne(report)
+            res.send(result)
+        })
+        
+       
        
 
     }
